@@ -118,19 +118,20 @@ function CompatibilityContent() {
       <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Kiểm tra tương thích linh kiện</h1>
-          <p className="text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
             Chọn mỗi loại một linh kiện, hệ thống sẽ đối chiếu socket, loại RAM, kích thước,
             công suất... để báo xung đột trước khi bạn mua.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 shrink-0">
           {selectedCount > 0 && (
             <button
               onClick={handleReset}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 whitespace-nowrap transition-colors shadow-xs"
             >
-              <RotateCcw className="w-3.5 h-3.5" /> Xóa chọn
+              <RotateCcw className="w-3.5 h-3.5 shrink-0" />
+              <span>Xóa chọn</span>
             </button>
           )}
           <ShareBuildButton selection={selection} />
