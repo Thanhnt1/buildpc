@@ -8,9 +8,9 @@ import { checkCompatibility, summarize, CompatibilityIssue } from "@/lib/compati
 import PubgCompatibility from "@/components/PubgCompatibility";
 import PowerCalculator from "@/components/PowerCalculator";
 import BuildPresets from "@/components/BuildPresets";
-import ShareBuildButton from "@/components/ShareBuildButton";
+import BuildComparison from "@/components/BuildComparison";
 import SearchableSelect from "@/components/SearchableSelect";
-import { CheckCircle2, AlertTriangle, XCircle, RotateCcw, Wrench } from "lucide-react";
+import { CheckCircle2, AlertTriangle, XCircle, Wrench } from "lucide-react";
 
 function IssueRow({ issue }: { issue: CompatibilityIssue }) {
   const icon =
@@ -110,33 +110,14 @@ function CompatibilityContent() {
   const summary = summarize(issues);
   const selectedCount = Object.keys(selection).length;
 
-  const handleReset = () => {
-    setSelection({});
-  };
-
   return (
     <div>
-      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Kiểm tra tương thích linh kiện</h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
-            Chọn mỗi loại một linh kiện, hệ thống sẽ đối chiếu socket, loại RAM, kích thước,
-            công suất... để báo xung đột trước khi bạn mua.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2.5 shrink-0">
-          {selectedCount > 0 && (
-            <button
-              onClick={handleReset}
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 whitespace-nowrap transition-colors shadow-xs"
-            >
-              <RotateCcw className="w-3.5 h-3.5 shrink-0" />
-              <span>Xóa chọn</span>
-            </button>
-          )}
-          <ShareBuildButton selection={selection} />
-        </div>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold">Kiểm tra tương thích linh kiện</h1>
+        <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
+          Chọn mỗi loại một linh kiện, hệ thống sẽ đối chiếu socket, loại RAM, kích thước,
+          công suất... để báo xung đột trước khi bạn mua.
+        </p>
       </div>
 
       {loading && <p className="text-slate-400 text-sm">Đang tải dữ liệu linh kiện...</p>}
@@ -145,6 +126,13 @@ function CompatibilityContent() {
         <>
           {/* Bộ cấu hình mẫu sẵn theo ngân sách */}
           <BuildPresets components={components} onApplyPreset={setSelection} />
+
+          {/* So sánh 2 bộ cấu hình PC */}
+          <BuildComparison
+            currentSelection={selection}
+            components={components}
+            onApplyBuildToMain={setSelection}
+          />
 
           {/* Bộ chọn linh kiện & Kết quả tương thích (Được bọc trong Card Container đồng bộ) */}
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm mb-8">
