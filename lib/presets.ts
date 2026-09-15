@@ -1,5 +1,10 @@
 import { PcComponent, Category } from "./types";
 
+export interface ComponentMatcherCriteria {
+  keywords?: string[];
+  specs?: Record<string, any>;
+}
+
 export interface PresetBuild {
   id: string;
   name: string;
@@ -8,16 +13,7 @@ export interface PresetBuild {
   badgeColor: string;
   iconName: "gamepad" | "zap" | "flame" | "crown";
   description: string;
-  matcher: {
-    cpu: string;
-    mainboard: string;
-    ram: string;
-    gpu: string;
-    storage: string;
-    psu: string;
-    case: string;
-    cooler: string;
-  };
+  matcher: Record<Category, ComponentMatcherCriteria>;
   gameFps: {
     game: string;
     resolution: string;
@@ -36,16 +32,16 @@ export const PRESET_BUILDS: PresetBuild[] = [
     budgetRange: "~10 - 13 Triệu",
     badgeColor: "bg-blue-100 text-blue-800 border-blue-200",
     iconName: "gamepad",
-    description: "Bộ máy tối ưu chi phí với Core i3-12100F/14100F và GTX 1650/RTX 3050, thích hợp cho học tập, làm việc và chiến game phổ thông.",
+    description: "Bộ máy tối ưu chi phí với Core i3-12100F và RTX 3050 6GB/8GB, RAM DDR4 3200MHz, thích hợp cho học tập, làm việc và chiến game phổ thông.",
     matcher: {
-      cpu: "12100F",
-      mainboard: "H610M",
-      ram: "16GB",
-      gpu: "3050",
-      storage: "500GB",
-      psu: "550W",
-      case: "MYX",
-      cooler: "AG400",
+      cpu: { keywords: ["12100F"] },
+      mainboard: { keywords: ["H610M"], specs: { ram_type: "DDR4" } },
+      ram: { keywords: ["DDR4", "3200"], specs: { type: "DDR4" } },
+      gpu: { keywords: ["3050"] },
+      storage: { keywords: ["500GB"], specs: { interface: "NVMe" } },
+      psu: { keywords: ["550W"] },
+      case: { keywords: ["MYX"] },
+      cooler: { keywords: ["AG400"], specs: { type: "air" } },
     },
     gameFps: [
       { game: "PUBG PC", resolution: "1080p", settings: "Very Low", avgFps: 75, low1Percent: 55, rating: "Smooth" },
@@ -62,16 +58,16 @@ export const PRESET_BUILDS: PresetBuild[] = [
     budgetRange: "~18 - 23 Triệu",
     badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
     iconName: "zap",
-    description: "Cấu hình được ưa chuộng nhất: Intel Core i5-12400F/13400F hoặc Ryzen 5 7500F đi kèm RTX 4060 8GB, cân mượt mọi game AAA và Esport ở 1080p.",
+    description: "Cấu hình quốc dân: Intel Core i5-13400F đi kèm Mainboard B760M DDR4, kit RAM 16GB DDR4 3200MHz và RTX 4060 8GB, cân mượt mọi game AAA và Esport 1080p.",
     matcher: {
-      cpu: "13400F",
-      mainboard: "B760M",
-      ram: "16GB",
-      gpu: "4060",
-      storage: "500GB",
-      psu: "650W",
-      case: "Gaming X",
-      cooler: "AK400",
+      cpu: { keywords: ["13400F"] },
+      mainboard: { keywords: ["B760M"], specs: { ram_type: "DDR4" } },
+      ram: { keywords: ["16GB", "DDR4"], specs: { type: "DDR4" } },
+      gpu: { keywords: ["4060"] },
+      storage: { keywords: ["500GB", "NVMe"] },
+      psu: { keywords: ["650W"] },
+      case: { keywords: ["Gaming X"] },
+      cooler: { keywords: ["AK400"], specs: { type: "air" } },
     },
     gameFps: [
       { game: "PUBG PC", resolution: "1080p", settings: "Competitive", avgFps: 145, low1Percent: 105, rating: "Esport Pro" },
@@ -88,16 +84,16 @@ export const PRESET_BUILDS: PresetBuild[] = [
     budgetRange: "~32 - 40 Triệu",
     badgeColor: "bg-purple-100 text-purple-800 border-purple-200",
     iconName: "flame",
-    description: "Bộ máy hiệu năng cao trang bị Core i5-14600K hoặc Ryzen 7 7800X3D kết hợp RTX 4070 SUPER / 5070 12GB và 32GB RAM DDR5, sẵn sàng cho màn hình 2K.",
+    description: "Bộ máy hiệu năng cao trang bị Ryzen 7 7800X3D kết hợp Mainboard B650 ATX, 32GB RAM DDR5 6000MHz, Card RTX 4070 SUPER / 5070 12GB và Vỏ Case Mid-Tower hỗ trợ tản nước AIO 360mm.",
     matcher: {
-      cpu: "7800X3D",
-      mainboard: "B650",
-      ram: "32GB",
-      gpu: "4070",
-      storage: "1TB",
-      psu: "750W",
-      case: "D300",
-      cooler: "360",
+      cpu: { keywords: ["7800X3D"] },
+      mainboard: { keywords: ["B650"], specs: { socket: "AM5", form_factor: "ATX" } },
+      ram: { keywords: ["32GB", "6000"], specs: { type: "DDR5" } },
+      gpu: { keywords: ["4070"] },
+      storage: { keywords: ["1TB", "NVMe"] },
+      psu: { keywords: ["750W"] },
+      case: { keywords: ["4000D"] },
+      cooler: { keywords: ["360"], specs: { type: "aio" } },
     },
     gameFps: [
       { game: "PUBG PC", resolution: "2K 1440p", settings: "Competitive", avgFps: 220, low1Percent: 165, rating: "Esport Pro" },
@@ -114,16 +110,16 @@ export const PRESET_BUILDS: PresetBuild[] = [
     budgetRange: "~65 - 90+ Triệu",
     badgeColor: "bg-amber-100 text-amber-900 border-amber-300",
     iconName: "crown",
-    description: "Cấu hình tối thượng với CPU Vua Game AMD Ryzen 7 9800X3D / i9-14900K, Card khủng RTX 4080 Super / RTX 5090 và tản nhiệt nước AIO cao cấp.",
+    description: "Cấu hình tối thượng với CPU Vua Game AMD Ryzen 7 9800X3D, Mainboard X870E, 64GB RAM DDR5 6000MHz, Card khủng RTX 5080/5090, nguồn 1000W và tản AIO 360mm.",
     matcher: {
-      cpu: "9800X3D",
-      mainboard: "X870",
-      ram: "64GB",
-      gpu: "5080",
-      storage: "2TB",
-      psu: "1000W",
-      case: "O11",
-      cooler: "Ryujin",
+      cpu: { keywords: ["9800X3D"] },
+      mainboard: { keywords: ["X870"], specs: { socket: "AM5", form_factor: "ATX" } },
+      ram: { keywords: ["64GB", "6000"], specs: { type: "DDR5" } },
+      gpu: { keywords: ["5080"] },
+      storage: { keywords: ["2TB", "NVMe"] },
+      psu: { keywords: ["1000W"] },
+      case: { keywords: ["O11D Evo"] },
+      cooler: { keywords: ["Ryujin", "360"], specs: { type: "aio" } },
     },
     gameFps: [
       { game: "PUBG PC", resolution: "4K 2160p", settings: "Ultra Settings", avgFps: 210, low1Percent: 160, rating: "Cinematic Max" },
@@ -138,15 +134,49 @@ export const PRESET_BUILDS: PresetBuild[] = [
 export function findComponentForPreset(
   components: PcComponent[],
   category: Category,
-  keyword: string
+  criteria: ComponentMatcherCriteria
 ): PcComponent | undefined {
   const list = components.filter((c) => c.category === category);
   if (list.length === 0) return undefined;
 
-  const keyUpper = keyword.toUpperCase();
-  const matched = list.find(
-    (c) => c.name.toUpperCase().includes(keyUpper) || c.brand.toUpperCase().includes(keyUpper)
-  );
+  // Tìm sản phẩm khớp cả keywords và specs
+  const matched = list.find((c) => {
+    const nameUpper = (c.name + " " + c.brand).toUpperCase();
 
-  return matched || list[0];
+    if (criteria.keywords && criteria.keywords.length > 0) {
+      for (const kw of criteria.keywords) {
+        if (!nameUpper.includes(kw.toUpperCase())) return false;
+      }
+    }
+
+    if (criteria.specs && Object.keys(criteria.specs).length > 0) {
+      for (const [key, val] of Object.entries(criteria.specs)) {
+        if (c.specs && c.specs[key] !== val) return false;
+      }
+    }
+
+    return true;
+  });
+
+  if (matched) return matched;
+
+  // Fallback 1: Khớp theo specs nếu không khớp toàn bộ keywords
+  if (criteria.specs && Object.keys(criteria.specs).length > 0) {
+    const specMatched = list.find((c) => {
+      for (const [key, val] of Object.entries(criteria.specs!)) {
+        if (c.specs && c.specs[key] !== val) return false;
+      }
+      return true;
+    });
+    if (specMatched) return specMatched;
+  }
+
+  // Fallback 2: Khớp keyword đầu tiên
+  if (criteria.keywords && criteria.keywords.length > 0) {
+    const kw0 = criteria.keywords[0].toUpperCase();
+    const kwMatched = list.find((c) => (c.name + " " + c.brand).toUpperCase().includes(kw0));
+    if (kwMatched) return kwMatched;
+  }
+
+  return list[0];
 }
