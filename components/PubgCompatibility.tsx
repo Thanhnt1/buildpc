@@ -13,6 +13,7 @@ import {
   Sliders,
   AlertCircle,
   CheckCircle2,
+  XCircle,
   Flame,
   Zap,
 } from "lucide-react";
@@ -140,22 +141,40 @@ export default function PubgCompatibility({ selection }: { selection: BuildSelec
             <span className="text-xs font-medium text-slate-500 uppercase tracking-wide block mb-1">
               Độ sẵn sàng hệ thống
             </span>
-            {evalResult.hasEssentialParts ? (
-              <div className="flex items-center gap-1.5 text-emerald-600 text-sm font-semibold mb-1">
-                <CheckCircle2 className="w-4 h-4" /> Đầy đủ linh kiện chạy máy
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5 text-amber-600 text-sm font-semibold mb-1">
-                <AlertCircle className="w-4 h-4" /> Thiếu: {evalResult.missingParts.join(", ")}
-              </div>
-            )}
-            <p className="text-xs text-slate-500">
-              {evalResult.hasEssentialParts
-                ? "Bộ linh kiện đã đủ để lên đèn và cài đặt game."
-                : "Cần bổ sung các linh kiện thiết yếu để hoàn thiện cây máy."}
+            <div
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border mb-1.5 ${evalResult.systemReadiness.badgeColor}`}
+            >
+              {evalResult.systemReadiness.status === "ready" && (
+                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+              )}
+              {evalResult.systemReadiness.status === "has_errors" && (
+                <XCircle className="w-3.5 h-3.5 shrink-0 text-red-600" />
+              )}
+              {evalResult.systemReadiness.status === "missing_parts" && (
+                <AlertCircle className="w-3.5 h-3.5 shrink-0 text-amber-600" />
+              )}
+              <span>{evalResult.systemReadiness.title}</span>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              {evalResult.systemReadiness.message}
             </p>
           </div>
         </div>
+
+        {/* Cảnh báo nổi bật nếu có lỗi xung đột phần cứng */}
+        {evalResult.systemReadiness.status === "has_errors" && (
+          <div className="rounded-xl border border-red-200 bg-red-50/80 p-4 text-sm text-red-800">
+            <div className="flex items-center gap-2 font-bold text-red-900 mb-1.5">
+              <XCircle className="w-4 h-4 text-red-600" />
+              <span>Phát hiện xung đột phần cứng khiến hệ thống không thể khởi động hoặc lắp ráp:</span>
+            </div>
+            <ul className="list-disc list-inside space-y-1 text-xs text-red-700 ml-1">
+              {evalResult.systemReadiness.errorMessages.map((msg, i) => (
+                <li key={i}>{msg}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Section 1: Estimated FPS Grid */}
         <div>

@@ -1,3 +1,4 @@
+import { checkCompatibility } from "./compatibility";
 import { BuildSelection, CpuSpecs, GpuSpecs, RamSpecs, StorageSpecs } from "./types";
 
 export interface PubgEvaluation {
@@ -6,6 +7,14 @@ export interface PubgEvaluation {
   formattedPrice: string;
   hasEssentialParts: boolean;
   missingParts: string[];
+  systemReadiness: {
+    status: "ready" | "has_errors" | "missing_parts";
+    title: string;
+    badgeColor: string;
+    message: string;
+    errorsCount: number;
+    errorMessages: string[];
+  };
   tier: "unplayable" | "entry" | "esport_144" | "hardcore_240";
   tierTitle: string;
   tierBadgeColor: string;
@@ -64,6 +73,7 @@ export function evaluatePubgCompatibility(selection: BuildSelection): PubgEvalua
   }
   if (!storage) missingParts.push("Ổ cứng (SSD)");
   if (!psu) missingParts.push("Nguồn (PSU)");
+  if (!cooler) missingParts.push("Tản nhiệt");
   if (!pcCase) missingParts.push("Vỏ Case");
 
   const hasEssentialParts: boolean = Boolean(
@@ -74,6 +84,36 @@ export function evaluatePubgCompatibility(selection: BuildSelection): PubgEvalua
     storage &&
     psu
   );
+
+  // Kiểm tra lỗi tương thích phần cứng thực tế
+  const compatIssues = checkCompatibility(selection);
+  const errorIssues = compatIssues.filter((i) => i.level === "error");
+
+  let readinessStatus: "ready" | "has_errors" | "missing_parts" = "missing_parts";
+  let readinessTitle = "Chưa đủ linh kiện";
+  let readinessBadgeColor = "bg-amber-100 text-amber-800 border-amber-300";
+  let readinessMessage = `Thiếu ${missingParts.join(", ")} để hoàn thiện hệ thống.`;
+
+  if (errorIssues.length > 0) {
+    readinessStatus = "has_errors";
+    readinessTitle = `Xung đột phần cứng (${errorIssues.length} lỗi)`;
+    readinessBadgeColor = "bg-red-100 text-red-800 border-red-300";
+    readinessMessage = `Có ${errorIssues.length} xung đột phần cứng nghiêm trọng cần giải quyết trước khi lắp ráp.`;
+  } else if (hasEssentialParts) {
+    readinessStatus = "ready";
+    readinessTitle = "Sẵn sàng 100%";
+    readinessBadgeColor = "bg-emerald-100 text-emerald-800 border-emerald-300";
+    readinessMessage = "Đầy đủ linh kiện thiết yếu và hoàn toàn không có xung đột phần cứng.";
+  }
+
+  const systemReadiness = {
+    status: readinessStatus,
+    title: readinessTitle,
+    badgeColor: readinessBadgeColor,
+    message: readinessMessage,
+    errorsCount: errorIssues.length,
+    errorMessages: errorIssues.map((e) => e.message),
+  };
 
   // 2. Đánh giá CPU
   let cpuScore = 0;
@@ -388,6 +428,7 @@ export function evaluatePubgCompatibility(selection: BuildSelection): PubgEvalua
     formattedPrice,
     hasEssentialParts,
     missingParts,
+    systemReadiness,
     tier,
     tierTitle,
     tierBadgeColor,
