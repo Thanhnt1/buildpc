@@ -9,7 +9,7 @@ import PubgCompatibility from "@/components/PubgCompatibility";
 import PowerCalculator from "@/components/PowerCalculator";
 import BuildPresets from "@/components/BuildPresets";
 import ShareBuildButton from "@/components/ShareBuildButton";
-import { CheckCircle2, AlertTriangle, XCircle, RotateCcw } from "lucide-react";
+import { CheckCircle2, AlertTriangle, XCircle, RotateCcw, Wrench } from "lucide-react";
 
 function IssueRow({ issue }: { issue: CompatibilityIssue }) {
   const icon =
@@ -144,72 +144,99 @@ function CompatibilityContent() {
           {/* Bộ cấu hình mẫu sẵn theo ngân sách */}
           <BuildPresets components={components} onApplyPreset={setSelection} />
 
-          {/* Bộ chọn linh kiện & Kết quả tương thích */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {CATEGORY_ORDER.map((cat) => (
-                <div key={cat} className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-bold text-slate-800">
-                      {CATEGORY_LABELS[cat]}
-                    </label>
-                    {selection[cat] && (
-                      <span className="text-[11px] font-bold text-indigo-600">
-                        {selection[cat]?.price_min
-                          ? `${selection[cat]?.price_min?.toLocaleString("vi-VN")} đ`
-                          : "Chưa có giá"}
-                      </span>
-                    )}
-                  </div>
-                  <select
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-brand/40"
-                    value={selection[cat]?.id ?? ""}
-                    onChange={(e) => {
-                      const comp = byCategory[cat].find((c) => c.id === e.target.value);
-                      setSelection((prev) => {
-                        const next = { ...prev };
-                        if (comp) next[cat] = comp;
-                        else delete next[cat];
-                        return next;
-                      });
-                    }}
-                  >
-                    <option value="">-- Chưa chọn {CATEGORY_LABELS[cat]} --</option>
-                    {byCategory[cat]?.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        [{c.brand}] {c.name} {c.price_min ? `(${c.price_min.toLocaleString("vi-VN")} đ)` : ""}
-                      </option>
-                    ))}
-                  </select>
+          {/* Bộ chọn linh kiện & Kết quả tương thích (Được bọc trong Card Container đồng bộ) */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-blue-50 rounded-xl text-blue-600 border border-blue-100">
+                  <Wrench className="w-6 h-6" />
                 </div>
-              ))}
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800">
+                    Tùy chọn cấu hình & Kiểm tra tương thích
+                  </h2>
+                  <p className="text-sm text-slate-500">
+                    Chọn linh kiện theo từng danh mục để đối chiếu thông số phần cứng theo thời gian thực.
+                  </p>
+                </div>
+              </div>
+
+              {selectedCount > 0 && (
+                <div className="flex items-center gap-2 text-xs bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-slate-600 font-medium">
+                  <span>Đã chọn: <strong className="text-indigo-600 font-bold">{selectedCount}/8</strong> danh mục</span>
+                </div>
+              )}
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-white p-5 h-fit sticky top-24 shadow-xs">
-              <div className="flex items-center justify-between pb-2 mb-3 border-b border-slate-100">
-                <h2 className="font-bold text-slate-900 text-sm">Kết quả tương thích</h2>
-                <span className="text-xs text-slate-500 font-medium">
-                  {selectedCount}/8 linh kiện
-                </span>
-              </div>
-
-              <div className="flex gap-3 text-xs mb-4">
-                <span className="text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded-md border border-red-100">
-                  {summary.errors} lỗi
-                </span>
-                <span className="text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100">
-                  {summary.warnings} cảnh báo
-                </span>
-                <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
-                  {summary.oks} ổn
-                </span>
-              </div>
-
-              <ul className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
-                {issues.map((issue, i) => (
-                  <IssueRow key={i} issue={issue} />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {CATEGORY_ORDER.map((cat) => (
+                  <div
+                    key={cat}
+                    className="bg-slate-50/70 hover:bg-slate-50 p-3.5 rounded-xl border border-slate-200/90 shadow-xs transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-bold text-slate-800">
+                        {CATEGORY_LABELS[cat]}
+                      </label>
+                      {selection[cat] && (
+                        <span className="text-[11px] font-bold text-indigo-600">
+                          {selection[cat]?.price_min
+                            ? `${selection[cat]?.price_min?.toLocaleString("vi-VN")} đ`
+                            : "Chưa có giá"}
+                        </span>
+                      )}
+                    </div>
+                    <select
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-brand/40 font-medium text-slate-800"
+                      value={selection[cat]?.id ?? ""}
+                      onChange={(e) => {
+                        const comp = byCategory[cat].find((c) => c.id === e.target.value);
+                        setSelection((prev) => {
+                          const next = { ...prev };
+                          if (comp) next[cat] = comp;
+                          else delete next[cat];
+                          return next;
+                        });
+                      }}
+                    >
+                      <option value="">-- Chưa chọn {CATEGORY_LABELS[cat]} --</option>
+                      {byCategory[cat]?.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          [{c.brand}] {c.name} {c.price_min ? `(${c.price_min.toLocaleString("vi-VN")} đ)` : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 ))}
-              </ul>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5 h-fit lg:sticky lg:top-24 shadow-xs">
+                <div className="flex items-center justify-between pb-2 mb-3 border-b border-slate-200/80">
+                  <h3 className="font-bold text-slate-900 text-sm">Kết quả tương thích</h3>
+                  <span className="text-xs text-slate-500 font-medium">
+                    {selectedCount}/8 linh kiện
+                  </span>
+                </div>
+
+                <div className="flex gap-2 text-xs mb-4">
+                  <span className="text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded-md border border-red-100">
+                    {summary.errors} lỗi
+                  </span>
+                  <span className="text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100">
+                    {summary.warnings} cảnh báo
+                  </span>
+                  <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
+                    {summary.oks} ổn
+                  </span>
+                </div>
+
+                <ul className="space-y-2 max-h-[460px] overflow-y-auto pr-1">
+                  {issues.map((issue, i) => (
+                    <IssueRow key={i} issue={issue} />
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
 
