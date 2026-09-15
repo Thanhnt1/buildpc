@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { CATEGORY_LABELS, CATEGORY_ORDER, BuildSelection, PcComponent } from "@/lib/types";
 import { checkCompatibility, summarize, CompatibilityIssue } from "@/lib/compatibility";
+import PubgCompatibility from "@/components/PubgCompatibility";
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 
 function IssueRow({ issue }: { issue: CompatibilityIssue }) {
@@ -133,6 +134,9 @@ export default function CompatibilityPage() {
           </div>
         </div>
       )}
+
+      {/* Phân tích hiệu năng & tương thích với game PUBG PC */}
+      {!loading && <PubgCompatibility selection={selection} />}
     </div>
   );
 }
