@@ -240,11 +240,11 @@ function CompatibilityContent() {
             </div>
           </div>
 
-          {/* Phân rã công suất điện & Ước tính tiền điện */}
-          <PowerCalculator selection={selection} />
-
           {/* Phân tích hiệu năng & tương thích với game PUBG PC */}
           <PubgCompatibility selection={selection} />
+
+          {/* Phân rã công suất điện & Ước tính tiền điện */}
+          <PowerCalculator selection={selection} />
         </>
       )}
     </div>
