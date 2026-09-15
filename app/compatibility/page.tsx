@@ -9,6 +9,7 @@ import PubgCompatibility from "@/components/PubgCompatibility";
 import PowerCalculator from "@/components/PowerCalculator";
 import BuildPresets from "@/components/BuildPresets";
 import ShareBuildButton from "@/components/ShareBuildButton";
+import SearchableSelect from "@/components/SearchableSelect";
 import { CheckCircle2, AlertTriangle, XCircle, RotateCcw, Wrench } from "lucide-react";
 
 function IssueRow({ issue }: { issue: CompatibilityIssue }) {
@@ -188,11 +189,11 @@ function CompatibilityContent() {
                         </span>
                       )}
                     </div>
-                    <select
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-brand/40 font-medium text-slate-800"
-                      value={selection[cat]?.id ?? ""}
-                      onChange={(e) => {
-                        const comp = byCategory[cat].find((c) => c.id === e.target.value);
+                    <SearchableSelect
+                      category={cat}
+                      components={byCategory[cat] || []}
+                      selectedComponent={selection[cat]}
+                      onSelect={(comp) => {
                         setSelection((prev) => {
                           const next = { ...prev };
                           if (comp) next[cat] = comp;
@@ -200,14 +201,7 @@ function CompatibilityContent() {
                           return next;
                         });
                       }}
-                    >
-                      <option value="">-- Chưa chọn {CATEGORY_LABELS[cat]} --</option>
-                      {byCategory[cat]?.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          [{c.brand}] {c.name} {c.price_min ? `(${c.price_min.toLocaleString("vi-VN")} đ)` : ""}
-                        </option>
-                      ))}
-                    </select>
+                    />
                   </div>
                 ))}
               </div>
