@@ -9,6 +9,7 @@ import {
   MainboardSpecs,
   PsuSpecs,
   RamSpecs,
+  StorageSpecs,
 } from "./types";
 
 export type IssueLevel = "error" | "warning" | "ok";
@@ -84,47 +85,63 @@ export function checkCompatibility(selection: BuildSelection): CompatibilityIssu
   if (mainboard && pcCase) {
     const mbSpecs = mainboard.specs as MainboardSpecs;
     const caseSpecs = pcCase.specs as CaseSpecs;
-    if (!caseSpecs.supported_form_factors.includes(mbSpecs.form_factor)) {
+    const supportedMb = caseSpecs.supported_form_factors || ["ATX", "mATX", "ITX"];
+    if (!supportedMb.includes(mbSpecs.form_factor)) {
       issues.push({
         level: "error",
-        message: `Mainboard chuẩn ${mbSpecs.form_factor} không lắp vừa Case (Case chỉ hỗ trợ: ${caseSpecs.supported_form_factors.join(", ")}).`,
+        message: `Mainboard chuẩn ${mbSpecs.form_factor} không lắp vừa Case (Case chỉ hỗ trợ: ${supportedMb.join(", ")}).`,
       });
     } else {
-      issues.push({ level: "ok", message: `Mainboard (${mbSpecs.form_factor}) lắp vừa Case.` });
+      issues.push({
+        level: "ok",
+        message: `Vỏ Case hỗ trợ chuẩn Mainboard ${mbSpecs.form_factor} (hỗ trợ tối đa: ${supportedMb.join(", ")}).`,
+      });
     }
   }
 
-  // 4) PSU <-> Case: form factor
+  // 4) PSU <-> Case: form factor nguồn
   if (psu && pcCase) {
     const psuSpecs = psu.specs as PsuSpecs;
     const caseSpecs = pcCase.specs as CaseSpecs;
-    if (!caseSpecs.supported_psu_form_factors.includes(psuSpecs.form_factor)) {
+    const supportedPsu = caseSpecs.supported_psu_form_factors || ["ATX"];
+    if (!supportedPsu.includes(psuSpecs.form_factor)) {
       issues.push({
         level: "error",
-        message: `Nguồn chuẩn ${psuSpecs.form_factor} không lắp vừa khoang nguồn của Case (Case hỗ trợ: ${caseSpecs.supported_psu_form_factors.join(", ")}).`,
+        message: `Nguồn chuẩn ${psuSpecs.form_factor} không lắp vừa khoang nguồn của Case (Case chỉ hỗ trợ: ${supportedPsu.join(", ")}).`,
+      });
+    } else {
+      issues.push({
+        level: "ok",
+        message: `Nguồn chuẩn ${psuSpecs.form_factor} lắp vừa vặn khoang nguồn của Vỏ Case.`,
       });
     }
   }
 
-  // 5) GPU <-> Case: chiều dài
+  // 5) GPU <-> Case: chiều dài khoang VGA
   if (gpu && pcCase) {
     const gpuSpecs = gpu.specs as GpuSpecs;
     const caseSpecs = pcCase.specs as CaseSpecs;
-    if (gpuSpecs.length_mm > caseSpecs.max_gpu_length_mm) {
+    const maxGpuLength = caseSpecs.max_gpu_length_mm || 360;
+    if (gpuSpecs.length_mm > maxGpuLength) {
       issues.push({
         level: "error",
-        message: `VGA dài ${gpuSpecs.length_mm}mm, vượt quá khoảng trống Case cho phép (${caseSpecs.max_gpu_length_mm}mm).`,
+        message: `VGA dài ${gpuSpecs.length_mm}mm, vượt quá chiều dài tối đa Case cho phép (${maxGpuLength}mm) — không thể đóng nắp hoặc cấn quạt trước.`,
       });
     } else {
-      issues.push({ level: "ok", message: `VGA (${gpuSpecs.length_mm}mm) vừa khoang Case.` });
+      const remaining = maxGpuLength - gpuSpecs.length_mm;
+      issues.push({
+        level: "ok",
+        message: `VGA dài ${gpuSpecs.length_mm}mm lắp vừa khoang Case (khoảng trống tối đa ${maxGpuLength}mm, còn dư ~${remaining}mm).`,
+      });
     }
   }
 
-  // 6) Cooler <-> CPU: socket
+  // 6) Cooler <-> CPU: socket & TDP
   if (cooler && cpu) {
     const coolerSpecs = cooler.specs as CoolerSpecs;
     const cpuSpecs = cpu.specs as CpuSpecs;
-    if (!coolerSpecs.socket_support.includes(cpuSpecs.socket)) {
+    const sockets = coolerSpecs.socket_support || [];
+    if (!sockets.includes(cpuSpecs.socket)) {
       issues.push({
         level: "error",
         message: `Tản nhiệt không có ngàm hỗ trợ socket ${cpuSpecs.socket} của CPU.`,
@@ -138,30 +155,60 @@ export function checkCompatibility(selection: BuildSelection): CompatibilityIssu
     }
   }
 
-  // 7) Cooler <-> Case: chiều cao (khí) hoặc kích thước radiator (nước)
+  // 7) Cooler <-> Case: chiều cao (tản khí) hoặc kích thước radiator (tản AIO)
   if (cooler && pcCase) {
     const coolerSpecs = cooler.specs as CoolerSpecs;
     const caseSpecs = pcCase.specs as CaseSpecs;
+    const maxCoolerHeight = caseSpecs.max_cooler_height_mm || 165;
+
     if (coolerSpecs.type === "air" && coolerSpecs.height_mm) {
-      if (coolerSpecs.height_mm > caseSpecs.max_cooler_height_mm) {
+      if (coolerSpecs.height_mm > maxCoolerHeight) {
         issues.push({
           level: "error",
-          message: `Tản khí cao ${coolerSpecs.height_mm}mm vượt giới hạn Case cho phép (${caseSpecs.max_cooler_height_mm}mm) — sẽ không đóng được nắp hông.`,
+          message: `Tản khí cao ${coolerSpecs.height_mm}mm vượt giới hạn Case cho phép (${maxCoolerHeight}mm) — sẽ bị cấn kính/nắp hông.`,
+        });
+      } else {
+        issues.push({
+          level: "ok",
+          message: `Tản khí cao ${coolerSpecs.height_mm}mm lắp vừa khoảng trống nắp hông Case (tối đa ${maxCoolerHeight}mm).`,
         });
       }
     }
+
     if (coolerSpecs.type === "aio" && coolerSpecs.radiator_size_mm) {
-      const supported = caseSpecs.supported_radiator_sizes_mm || [];
-      if (!supported.includes(coolerSpecs.radiator_size_mm)) {
+      const supportedRads = caseSpecs.supported_radiator_sizes_mm || [240, 360];
+      if (!supportedRads.includes(coolerSpecs.radiator_size_mm)) {
         issues.push({
           level: "warning",
-          message: `Case chưa xác nhận hỗ trợ radiator ${coolerSpecs.radiator_size_mm}mm (Case hỗ trợ: ${supported.join(", ") || "không rõ"}). Nên kiểm tra thêm vị trí lắp trước khi mua.`,
+          message: `Vỏ Case chưa xác nhận hỗ trợ radiator ${coolerSpecs.radiator_size_mm}mm (Case hỗ trợ: ${supportedRads.join(", ") || "không rõ"}mm). Nên kiểm tra vị trí lắp nóc/mặt trước.`,
+        });
+      } else {
+        issues.push({
+          level: "ok",
+          message: `Két nước AIO ${coolerSpecs.radiator_size_mm}mm lắp vừa vị trí Radiator của Vỏ Case (hỗ trợ: ${supportedRads.join(", ")}mm).`,
         });
       }
     }
   }
 
-  // 8) Nguồn điện tổng hệ thống <-> PSU
+  // 8) Storage <-> Case: lưu ý kích thước ổ cơ HDD với Case mini
+  if (storage && pcCase) {
+    const storageSpecs = storage.specs as StorageSpecs;
+    const caseSpecs = pcCase.specs as CaseSpecs;
+    const supportedMb = caseSpecs.supported_form_factors || [];
+    if (
+      storageSpecs.form_factor === "3.5-inch" &&
+      supportedMb.length === 1 &&
+      supportedMb.includes("ITX")
+    ) {
+      issues.push({
+        level: "warning",
+        message: `Bạn chọn ổ HDD 3.5" lớn cho Vỏ Case Mini-ITX nhỏ gọn. Hãy đảm bảo Case có khay HDD 3.5" trước khi lắp ráp.`,
+      });
+    }
+  }
+
+  // 9) Nguồn điện tổng hệ thống <-> PSU
   if (psu && (cpu || gpu)) {
     const psuSpecs = psu.specs as PsuSpecs;
     const cpuW = cpu ? (cpu.specs as CpuSpecs).tdp_w : 0;
@@ -195,7 +242,7 @@ export function checkCompatibility(selection: BuildSelection): CompatibilityIssu
     }
   }
 
-  // 9) Storage: thông tin tham khảo (hầu hết mainboard hiện đại đều có sẵn SATA + M.2)
+  // 10) Storage: thông tin tham khảo (hầu hết mainboard hiện đại đều có sẵn SATA + M.2)
   if (storage && mainboard) {
     const mbSpecs = mainboard.specs as MainboardSpecs;
     const storageSpecs = storage.specs;
@@ -207,7 +254,7 @@ export function checkCompatibility(selection: BuildSelection): CompatibilityIssu
     }
   }
 
-  // 10) Cảnh báo các linh kiện chưa chọn
+  // 11) Cảnh báo các linh kiện chưa chọn
   for (const cat of CATEGORY_ORDER) {
     if (!selection[cat]) {
       issues.push({
