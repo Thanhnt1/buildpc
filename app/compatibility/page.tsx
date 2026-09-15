@@ -8,7 +8,6 @@ import { checkCompatibility, summarize, CompatibilityIssue } from "@/lib/compati
 import PubgCompatibility from "@/components/PubgCompatibility";
 import PowerCalculator from "@/components/PowerCalculator";
 import BuildPresets from "@/components/BuildPresets";
-import BuildComparison from "@/components/BuildComparison";
 import SearchableSelect from "@/components/SearchableSelect";
 import { CheckCircle2, AlertTriangle, XCircle, Wrench } from "lucide-react";
 
@@ -126,13 +125,6 @@ function CompatibilityContent() {
         <>
           {/* Bộ cấu hình mẫu sẵn theo ngân sách */}
           <BuildPresets components={components} onApplyPreset={setSelection} />
-
-          {/* So sánh 2 bộ cấu hình PC */}
-          <BuildComparison
-            currentSelection={selection}
-            components={components}
-            onApplyBuildToMain={setSelection}
-          />
 
           {/* Bộ chọn linh kiện & Kết quả tương thích (Được bọc trong Card Container đồng bộ) */}
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm mb-8">
