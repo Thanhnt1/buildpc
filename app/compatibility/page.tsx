@@ -53,7 +53,13 @@ export default function CompatibilityPage() {
     return map;
   }, [components]);
 
-  const issues = useMemo(() => checkCompatibility(selection), [selection]);
+  const issues = useMemo(() => {
+    const raw = checkCompatibility(selection);
+    // Ưu tiên hiển thị: Lỗi (error) trước -> Cảnh báo (warning) -> Ổn (ok)
+    const levelOrder: Record<string, number> = { error: 0, warning: 1, ok: 2 };
+    return [...raw].sort((a, b) => (levelOrder[a.level] ?? 1) - (levelOrder[b.level] ?? 1));
+  }, [selection]);
+
   const summary = summarize(issues);
   const selectedCount = Object.keys(selection).length;
 
@@ -102,35 +108,19 @@ export default function CompatibilityPage() {
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-white p-5 h-fit sticky top-24">
-            <h2 className="font-semibold mb-3">Kết quả</h2>
-            {selectedCount === 0 && (
-              <p className="text-sm text-slate-400">
-                Chọn ít nhất 2 linh kiện liên quan (vd CPU + Mainboard) để bắt đầu kiểm tra.
-              </p>
-            )}
-            {selectedCount > 0 && (
-              <>
-                <div className="flex gap-3 text-sm mb-4">
-                  <span className="text-red-600 font-medium">{summary.errors} lỗi</span>
-                  <span className="text-amber-600 font-medium">
-                    {summary.warnings} cảnh báo
-                  </span>
-                  <span className="text-emerald-600 font-medium">{summary.oks} ổn</span>
-                </div>
-                {issues.length === 0 ? (
-                  <p className="text-sm text-slate-400">
-                    Chưa đủ dữ liệu để so sánh — hãy chọn thêm linh kiện liên quan (vd cả CPU
-                    lẫn Mainboard).
-                  </p>
-                ) : (
-                  <ul className="space-y-2">
-                    {issues.map((issue, i) => (
-                      <IssueRow key={i} issue={issue} />
-                    ))}
-                  </ul>
-                )}
-              </>
-            )}
+            <h2 className="font-semibold mb-3">Kết quả tương thích</h2>
+            <div className="flex gap-3 text-sm mb-4">
+              <span className="text-red-600 font-medium">{summary.errors} lỗi</span>
+              <span className="text-amber-600 font-medium">
+                {summary.warnings} cảnh báo
+              </span>
+              <span className="text-emerald-600 font-medium">{summary.oks} ổn</span>
+            </div>
+            <ul className="space-y-2">
+              {issues.map((issue, i) => (
+                <IssueRow key={i} issue={issue} />
+              ))}
+            </ul>
           </div>
         </div>
       )}

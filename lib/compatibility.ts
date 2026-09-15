@@ -1,5 +1,7 @@
 import {
   BuildSelection,
+  CATEGORY_LABELS,
+  CATEGORY_ORDER,
   CaseSpecs,
   CoolerSpecs,
   CpuSpecs,
@@ -201,6 +203,16 @@ export function checkCompatibility(selection: BuildSelection): CompatibilityIssu
       issues.push({
         level: "warning",
         message: `Chưa xác nhận Mainboard có khe M.2 cho ổ NVMe đã chọn.`,
+      });
+    }
+  }
+
+  // 10) Cảnh báo các linh kiện chưa chọn
+  for (const cat of CATEGORY_ORDER) {
+    if (!selection[cat]) {
+      issues.push({
+        level: "warning",
+        message: `Chưa chọn ${CATEGORY_LABELS[cat]}: Hãy chọn để kiểm tra tương thích đầy đủ.`,
       });
     }
   }
