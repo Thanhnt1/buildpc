@@ -1,52 +1,46 @@
 # Deploy BUILD PC lên buildpc.thanhntr.io.vn
 
-Theo đúng pattern đã dùng cho NTR: GitHub → Vercel (auto-deploy) → Cloudflare DNS trỏ subdomain.
+Mô hình triển khai: GitHub -> Vercel (tự động deploy) -> Cloudflare DNS.
 
-## Bước 1: Đẩy code lên GitHub
+## 1. Kiểm tra trước khi deploy
 
-```bash
-cd "C:\Claude Cowork\PROJECTS\Personal\BUILD PC"
-git init
-git add .
-git commit -m "Initial commit: BUILD PC MVP"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/buildpc.git
-git push -u origin main
-```
-
-(Repo tên `buildpc`, tạo trước trên GitHub, để Public hoặc Private tuỳ bạn — Vercel dùng được cả hai.)
-
-## Bước 2: Import project vào Vercel
-
-1. https://vercel.com/dashboard → **Add New** → **Project**
-2. Import repo `buildpc` từ GitHub
-3. Framework Preset: **Next.js** (tự nhận diện)
-4. Environment Variables — thêm 2 biến từ `.env.local`:
+1. Code đã được push lên repository `Thanhnt1/buildpc`, nhánh `main`.
+2. Chạy tại máy local:
+   ```bash
+   npm run build
    ```
-   NEXT_PUBLIC_SUPABASE_URL=https://mjgefyylfgydnfoskwna.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_15RWYaTyA7mRJaaqKRcNpg_jzEJrXUD
+3. Chuẩn bị hai biến môi trường từ file `.env.local`:
    ```
-5. Deploy
-
-Sau khi deploy xong bạn sẽ có: `https://buildpc.vercel.app` (hoặc tên tương tự).
-
-## Bước 3: Gắn subdomain buildpc.thanhntr.io.vn
-
-### 3.1 Ở Vercel
-
-1. Project `buildpc` → **Settings** → **Domains**
-2. Add Domain: `buildpc.thanhntr.io.vn`
-3. Vercel sẽ show CNAME target, thường là:
-   ```
-   Name: buildpc
-   Type: CNAME
-   Target: cname.vercel-dns.com
+   NEXT_PUBLIC_SUPABASE_URL
+   NEXT_PUBLIC_SUPABASE_ANON_KEY
    ```
 
-### 3.2 Ở Cloudflare
+Không commit file `.env.local` hoặc dán giá trị biến môi trường vào tài liệu công khai.
 
-1. https://dash.cloudflare.com → chọn domain `thanhntr.io.vn` → **DNS**
-2. **Add record**:
+## 2. Tạo project trên Vercel
+
+1. Mở [Vercel Dashboard](https://vercel.com/dashboard), chọn **Add New** -> **Project**.
+2. Import repository `Thanhnt1/buildpc` từ GitHub.
+3. Xác nhận các thiết lập:
+   - Framework Preset: `Next.js`
+   - Root Directory: `./`
+   - Build Command: `npm run build`
+   - Output Directory: giữ mặc định
+4. Trong **Environment Variables**, thêm `NEXT_PUBLIC_SUPABASE_URL` và `NEXT_PUBLIC_SUPABASE_ANON_KEY` cho các môi trường Production, Preview và Development.
+5. Chọn **Deploy**. Sau khi thành công, kiểm tra URL mặc định `https://buildpc.vercel.app`.
+
+## 3. Gắn buildpc.thanhntr.io.vn
+
+### Trên Vercel
+
+1. Vào project `buildpc` -> **Settings** -> **Domains**.
+2. Thêm domain `buildpc.thanhntr.io.vn`.
+3. Giữ trang này mở để đối chiếu DNS target mà Vercel cung cấp. Target CNAME thông thường là `cname.vercel-dns.com`.
+
+### Trên Cloudflare
+
+1. Mở zone `thanhntr.io.vn` -> **DNS** -> **Records**.
+2. Tạo hoặc cập nhật bản ghi:
    ```
    Type: CNAME
    Name: buildpc
@@ -54,28 +48,22 @@ Sau khi deploy xong bạn sẽ có: `https://buildpc.vercel.app` (hoặc tên t�
    Proxy status: DNS only
    TTL: Auto
    ```
-3. Save
+3. Nếu đã có bản ghi `buildpc` khác, thay thế nó. Bản ghi cụ thể `buildpc` sẽ được ưu tiên hơn wildcard `*.thanhntr.io.vn`.
+4. Không bật Cloudflare Proxy cho đến khi Vercel xác nhận domain hợp lệ và SSL đã được cấp.
 
-Lưu ý: nếu domain hiện có bản ghi wildcard `*.thanhntr.io.vn` trỏ về VPS (giống setup NTR), bản ghi CNAME riêng cho `buildpc` sẽ override đúng cho subdomain này — không ảnh hưởng các subdomain khác.
+## 4. Xác minh
 
-### 3.3 Verify
+1. Đợi DNS cập nhật, thường 5-30 phút.
+2. Trong Vercel -> Settings -> Domains, domain phải hiện **Valid Configuration**.
+3. Mở `https://buildpc.thanhntr.io.vn` và kiểm tra:
+   - Trang danh sách linh kiện tải được dữ liệu Supabase.
+   - `/compatibility` và `/compare` hoạt động.
+   - HTTPS không báo chứng chỉ lỗi.
 
-- Đợi 5-30 phút DNS propagate
-- Vercel → Settings → Domains sẽ hiện `✓ buildpc.thanhntr.io.vn (Valid Configuration)`
-- Truy cập https://buildpc.thanhntr.io.vn
+## Auto-deploy
 
-## Auto-deploy sau này
-
-Từ giờ chỉ cần:
-
-```bash
-git add .
-git commit -m "Cập nhật ..."
-git push origin main
-```
-
-Vercel tự build + deploy lại (~1-2 phút), không cần làm lại bước domain.
+Mỗi lần push vào `main`, Vercel sẽ tự build và deploy Production. Pull request sẽ tạo Preview Deployment riêng.
 
 ## Cập nhật dữ liệu linh kiện
 
-Dữ liệu nằm ở Supabase (không nằm trong code), nên cập nhật giá/thêm linh kiện mới **không cần deploy lại** — chỉ cần sửa trực tiếp trong Supabase Table Editor hoặc SQL Editor, trang web sẽ tự lấy dữ liệu mới ở lần tải sau.
+Dữ liệu nằm tại Supabase. Sửa giá hoặc thêm linh kiện qua Supabase Table Editor/SQL Editor sẽ không cần deploy lại ứng dụng.

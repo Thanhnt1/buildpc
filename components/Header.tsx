@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Wrench, Scale, Monitor } from "lucide-react";
+import { LayoutGrid, Wrench, Scale } from "lucide-react";
 
 export default function Header() {
   const pathname = usePathname();
@@ -33,8 +34,15 @@ export default function Header() {
           href="/"
           className="flex items-center gap-2 group w-fit"
         >
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand to-indigo-500 flex items-center justify-center text-white shadow-sm shadow-brand/30 group-hover:scale-105 transition-transform">
-            <Monitor className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-900 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+            <Image
+              src="/ntr-logo.png"
+              alt="NTR"
+              width={40}
+              height={40}
+              className="w-full h-full object-contain"
+              priority
+            />
           </div>
           <div className="font-extrabold text-xl tracking-tight text-slate-900">
             BUILD<span className="text-brand">PC</span>
